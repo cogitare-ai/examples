@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 import torch.optim as optim
 import pprint
 import cogitare
@@ -27,11 +28,14 @@ cogitare.seed(args.seed)
 
 # Data
 mnist = fetch_mldata('MNIST original')
-mnist.data = mnist.data / 255
+mnist.data = (mnist.data / 255).astype(np.float32)
 data = DataSet([mnist.data, mnist.target.astype(int)], batch_size=args.batch_size)
+data_train, data_validation = data.split(0.8)
 
 # Model
-l = LogisticRegression(input_size=784, num_classes=10, cuda=args.cuda)
+l = LogisticRegression(input_size=784, num_classes=10, use_cuda=args.cuda)
 l.register_default_plugins()
 optimizer = optim.SGD(l.parameters(), lr=args.learning_rate, momentum=args.momentum)
-l.learn(data, optimizer)
+l.learn(data_train, optimizer, data_validation)
+print('Model trainined! Press any key to exit ...')
+input()
